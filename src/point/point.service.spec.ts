@@ -76,5 +76,15 @@ describe('PointService', () => {
 
       await expect(service.charge(userId, amount)).rejects.toThrowError();
     });
+    it(`음수 또는 0 포인트는 충전할 수 없다.`, async () => {
+      const userId = 1;
+      const amount = 0;
+
+      await expect(service.charge(userId, amount)).rejects.toThrowError();
+
+      const amount2 = -100;
+
+      await expect(service.charge(userId, amount2)).rejects.toThrowError();
+    });
   });
 });

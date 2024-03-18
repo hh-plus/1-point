@@ -27,5 +27,9 @@ export class PointService {
     if (!user) {
       throw new Error('user not found');
     }
+
+    if (amount <= 0) {
+      throw new Error('amount must be positive');
+    }
   }
 }
