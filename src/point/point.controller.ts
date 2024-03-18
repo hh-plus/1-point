@@ -45,7 +45,9 @@ export class PointController {
   ): Promise<UserPoint> {
     const userId = Number.parseInt(id);
     const amount = pointDto.amount;
-    return { id: userId, point: amount, updateMillis: Date.now() };
+    const userPoint: UserPoint = await this.pointService.charge(userId, amount);
+    // return { id: userId, point: amount, updateMillis: Date.now() };
+    return userPoint;
   }
 
   /**

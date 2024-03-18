@@ -2,11 +2,13 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PointService } from './point.service';
 import { DatabaseModule } from '@/database/database.module';
 import { PointHistoryTable } from '@/database/pointhistory.table';
-import { PointHistory, TransactionType } from './point.model';
+import { PointHistory, TransactionType, UserPoint } from './point.model';
+import { UserPointTable } from '@/database/userpoint.table';
 
 describe('PointService', () => {
   let service: PointService;
   let pointHistoryTable: PointHistoryTable;
+  let userDb: UserPointTable;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -15,6 +17,7 @@ describe('PointService', () => {
     }).compile();
 
     pointHistoryTable = module.get<PointHistoryTable>(PointHistoryTable);
+    userDb = module.get<UserPointTable>(UserPointTable);
     service = module.get<PointService>(PointService);
   });
 
@@ -85,6 +88,25 @@ describe('PointService', () => {
       const amount2 = -100;
 
       await expect(service.charge(userId, amount2)).rejects.toThrowError();
+    });
+    it(`포인트 충전을 완료하면 충전된 포인트를 반환한다.`, async () => {
+      const userId = 1;
+      const amount = 100;
+
+      const mockUserPoint = {
+        id: userId,
+        point: amount,
+        updateMillis: Date.now(),
+      };
+
+      const mockInsertOrUpdate = jest.fn(
+        (): Promise<UserPoint> => Promise.resolve(mockUserPoint),
+      );
+      userDb.insertOrUpdate = mockInsertOrUpdate;
+
+      await expect(service.charge(userId, amount)).resolves.toEqual(
+        mockUserPoint,
+      );
     });
   });
 });

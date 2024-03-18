@@ -31,5 +31,9 @@ export class PointService {
     if (amount <= 0) {
       throw new Error('amount must be positive');
     }
+
+    const updatedPoint = await this.userDb.insertOrUpdate(userId, amount);
+
+    return updatedPoint;
   }
 }
