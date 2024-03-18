@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PointHistoryTable } from '@/database/pointhistory.table';
 import { UserPointTable } from '@/database/userpoint.table';
+import { PointHistory } from './point.model';
 
 @Injectable()
 export class PointService {
@@ -8,7 +9,7 @@ export class PointService {
     private readonly userDb: UserPointTable,
     private readonly historyDb: PointHistoryTable,
   ) {}
-  async getPointByUserId(userId: number) {
+  async getPointHistoriesByUserId(userId: number): Promise<PointHistory[]> {
     // 이번 예제에서는 유저가 반드시 존재한다고 가정해보자(단, userId가 0이면 없는 것으로 간주한다.)
     const user = userId <= 0 ? null : { id: userId };
     if (!user) {
