@@ -7,7 +7,7 @@ import { UserPointTable } from '@/database/userpoint.table';
 
 describe('PointService', () => {
   let service: PointService;
-  let pointHistoryTable: PointHistoryTable;
+  let historyDb: PointHistoryTable;
   let userDb: UserPointTable;
 
   beforeEach(async () => {
@@ -16,7 +16,7 @@ describe('PointService', () => {
       providers: [PointService],
     }).compile();
 
-    pointHistoryTable = module.get<PointHistoryTable>(PointHistoryTable);
+    historyDb = module.get<PointHistoryTable>(PointHistoryTable);
     userDb = module.get<UserPointTable>(UserPointTable);
     service = module.get<PointService>(PointService);
   });
@@ -59,7 +59,7 @@ describe('PointService', () => {
       const mockSelectAllByUserId = jest.fn(
         (): Promise<PointHistory[]> => Promise.resolve(mockPointHistory),
       );
-      pointHistoryTable.selectAllByUserId = mockSelectAllByUserId;
+      historyDb.selectAllByUserId = mockSelectAllByUserId;
 
       await expect(service.getPointHistoriesByUserId(userId)).resolves.toEqual(
         mockPointHistory,
@@ -71,8 +71,27 @@ describe('PointService', () => {
    * 1. id에 해당하는 유저가 없으면 에러를 반환한다.
    * 2. 음수 또는 0 포인트는 충전할 수 없다.
    * 3. 포인트 충전을 완료하면 충전된 포인트를 반환한다.
+   * 4. 포인트 충전 시 히스토리를 저장해야 한다.
    */
   describe(`charge`, () => {
+    let userId = 1;
+    let amount = 100;
+    let mockUserPoint = null;
+    beforeEach(() => {
+      jest.resetAllMocks();
+      mockUserPoint = {
+        id: userId,
+        point: amount,
+        updateMillis: Date.now(),
+      };
+      const mockInsertOrUpdate = jest.fn(
+        (): Promise<UserPoint> => Promise.resolve(mockUserPoint),
+      );
+      userDb.insertOrUpdate = mockInsertOrUpdate;
+
+      historyDb.insert = jest.fn();
+    });
+
     it(`유저가 없으면 에러를 반환한다.`, async () => {
       const userId = 0;
       const amount = 100;
@@ -89,24 +108,32 @@ describe('PointService', () => {
 
       await expect(service.charge(userId, amount2)).rejects.toThrowError();
     });
+    it(`포인트 충전 시 히스토리를 저장해야 한다.`, async () => {
+      const userId = 1;
+      const amount = 100;
+
+      await service.charge(userId, amount);
+      expect(historyDb.insert).toHaveBeenCalled();
+    });
     it(`포인트 충전을 완료하면 충전된 포인트를 반환한다.`, async () => {
       const userId = 1;
       const amount = 100;
 
-      const mockUserPoint = {
-        id: userId,
-        point: amount,
-        updateMillis: Date.now(),
-      };
-
-      const mockInsertOrUpdate = jest.fn(
-        (): Promise<UserPoint> => Promise.resolve(mockUserPoint),
-      );
-      userDb.insertOrUpdate = mockInsertOrUpdate;
-
       await expect(service.charge(userId, amount)).resolves.toEqual(
         mockUserPoint,
       );
+    });
+  });
+
+  /**
+   *
+   */
+  describe(`use`, () => {
+    it(`유저가 없으면 에러를 반환한다.`, async () => {
+      const userId = 0;
+      const amount = 100;
+
+      // await expect(service.use(userId, amount)).rejects.toThrowError();
     });
   });
 });
