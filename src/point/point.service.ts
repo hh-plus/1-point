@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PointHistoryTable } from '@/database/pointhistory.table';
 import { UserPointTable } from '@/database/userpoint.table';
-import { PointHistory, TransactionType } from './point.model';
+import { PointHistory, TransactionType, UserPoint } from './point.model';
 
 class User {
   id: number;
@@ -28,7 +28,7 @@ export class PointService {
     return point;
   }
 
-  async charge(userId: number, amount: number): Promise<any> {
+  async charge(userId: number, amount: number): Promise<UserPoint> {
     User.find(userId);
 
     if (amount <= 0) {
@@ -45,5 +45,15 @@ export class PointService {
     return updatedPoint;
   }
 
-  // async use(userId: number, )
+  // async use(userId: number, amount: number): Promise<UserPoint> {
+  //   User.find(userId);
+
+  //   if (amount <= 0) {
+  //     throw new Error('amount must be positive');
+  //   }
+
+  //   const userPoint = await this.userDb.selectById(userId);
+
+  //   return;
+  // }
 }

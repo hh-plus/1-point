@@ -34,9 +34,7 @@ describe('PointService', () => {
     it(`유저가 없으면 에러를 반환한다.`, async () => {
       const userId = 0;
 
-      await expect(
-        service.getPointHistoriesByUserId(userId),
-      ).rejects.toThrowError();
+      await expect(service.getPointHistoriesByUserId(userId)).rejects.toThrow();
     });
     it(`유저가 있으면 유저가 가진 포인트를 반환한다.`, async () => {
       const userId = 1;
@@ -96,17 +94,17 @@ describe('PointService', () => {
       const userId = 0;
       const amount = 100;
 
-      await expect(service.charge(userId, amount)).rejects.toThrowError();
+      await expect(service.charge(userId, amount)).rejects.toThrow();
     });
     it(`음수 또는 0 포인트는 충전할 수 없다.`, async () => {
       const userId = 1;
       const amount = 0;
 
-      await expect(service.charge(userId, amount)).rejects.toThrowError();
+      await expect(service.charge(userId, amount)).rejects.toThrow();
 
       const amount2 = -100;
 
-      await expect(service.charge(userId, amount2)).rejects.toThrowError();
+      await expect(service.charge(userId, amount2)).rejects.toThrow();
     });
     it(`포인트 충전 시 히스토리를 저장해야 한다.`, async () => {
       const userId = 1;
@@ -126,14 +124,31 @@ describe('PointService', () => {
   });
 
   /**
+   * 1. id에 해당하는 유저가 없으면 에러를 반환한다.
+   * 2. 음수 또는 0 포인트는 사용할 수 없다.
+   * 3. 포인트 사용을 완료하면 사용된 포인트를 반환한다.
+   * 4. 포인트 사용 시 히스토리를 저장해야 한다.
+   * 5. 사용할 포인트가 유저가 가진 포인트보다 많으면 에러를 반환한다.
    *
    */
-  describe(`use`, () => {
-    it(`유저가 없으면 에러를 반환한다.`, async () => {
-      const userId = 0;
-      const amount = 100;
+  // describe(`use`, () => {
+  //   it(`유저가 없으면 에러를 반환한다.`, async () => {
+  //     const userId = 0;
+  //     const amount = 100;
 
-      // await expect(service.use(userId, amount)).rejects.toThrowError();
-    });
-  });
+  //     await expect(service.use(userId, amount)).rejects.toThrow();
+  //   });
+
+  //   it(`음수 또는 0 포인트는 사용할 수 없다.`, async () => {
+  //     const userId = 1;
+  //     const amount = 0;
+
+  //     await expect(service.use(userId, amount)).rejects.toThrow();
+
+  //     const amount2 = -100;
+
+  //     await expect(service.use(userId, amount2)).rejects.toThrow();
+  //   });
+
+  // });
 });
