@@ -63,4 +63,18 @@ describe('PointService', () => {
       );
     });
   });
+
+  /**
+   * 1. id에 해당하는 유저가 없으면 에러를 반환한다.
+   * 2. 음수 또는 0 포인트는 충전할 수 없다.
+   * 3. 포인트 충전을 완료하면 충전된 포인트를 반환한다.
+   */
+  describe(`charge`, () => {
+    it(`유저가 없으면 에러를 반환한다.`, async () => {
+      const userId = 0;
+      const amount = 100;
+
+      await expect(service.charge(userId, amount)).rejects.toThrowError();
+    });
+  });
 });

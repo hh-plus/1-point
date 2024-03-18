@@ -9,6 +9,7 @@ export class PointService {
     private readonly userDb: UserPointTable,
     private readonly historyDb: PointHistoryTable,
   ) {}
+
   async getPointHistoriesByUserId(userId: number): Promise<PointHistory[]> {
     // 이번 예제에서는 유저가 반드시 존재한다고 가정해보자(단, userId가 0이면 없는 것으로 간주한다.)
     const user = userId <= 0 ? null : { id: userId };
@@ -19,5 +20,12 @@ export class PointService {
     const point = await this.historyDb.selectAllByUserId(userId);
 
     return point;
+  }
+
+  async charge(userId: number, amount: number): Promise<any> {
+    const user = userId <= 0 ? null : { id: userId };
+    if (!user) {
+      throw new Error('user not found');
+    }
   }
 }
