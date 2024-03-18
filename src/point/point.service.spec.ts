@@ -1,9 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PointService } from './point.service';
 import { DatabaseModule } from '@/database/database.module';
+import { PointHistoryTable } from '@/database/pointhistory.table';
+import { PointHistory, TransactionType } from './point.model';
 
 describe('PointService', () => {
   let service: PointService;
+  let pointHistoryTable: PointHistoryTable;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -11,6 +14,7 @@ describe('PointService', () => {
       providers: [PointService],
     }).compile();
 
+    pointHistoryTable = module.get<PointHistoryTable>(PointHistoryTable);
     service = module.get<PointService>(PointService);
   });
 
@@ -31,6 +35,26 @@ describe('PointService', () => {
       const userId = 1;
 
       await expect(service.getPointByUserId(userId)).resolves.toEqual([]);
+    });
+    it(`유저가 있고 포인트 사용 내역이 있으면 알맞은 타입의 값을 반환한다.`, async () => {
+      const userId = 1;
+      const mockPointHistory = [
+        {
+          id: 1,
+          userId: 1,
+          amount: 100,
+          type: TransactionType.CHARGE,
+          timeMillis: Date.now(),
+        },
+      ];
+      const mockSelectAllByUserId = jest.fn(
+        (): Promise<PointHistory[]> => Promise.resolve(mockPointHistory),
+      );
+      pointHistoryTable.selectAllByUserId = mockSelectAllByUserId;
+
+      await expect(service.getPointByUserId(userId)).resolves.toEqual(
+        mockPointHistory,
+      );
     });
   });
 });
