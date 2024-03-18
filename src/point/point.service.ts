@@ -14,6 +14,9 @@ export class PointService {
     if (!user) {
       throw new Error('user not found');
     }
-    return user;
+
+    const point = await this.historyDb.selectAllByUserId(userId);
+
+    return point;
   }
 }
