@@ -31,6 +31,16 @@ describe('PointService', () => {
 
       await expect(service.getPointByUserId(userId)).rejects.toThrow();
     });
+
+    it('유저가 있으면 유저가 가진 포인트를 반환한다.', async () => {
+      const userId = 1;
+
+      await expect(service.getPointByUserId(userId)).resolves.toEqual({
+        id: userId,
+        point: 0,
+        updateMillis: expect.any(Number),
+      });
+    });
   });
 
   /**
@@ -38,7 +48,7 @@ describe('PointService', () => {
    * 2. id에 해당하는 유저가 있으면 유저가 가진 포인트를 반환한다.
    * 3. id에 해당하는 유저가 있고 포인트 사용 내역이 있으면 알맞은 타입의 값을 반환한다.
    */
-  describe(`getPointByUserId`, () => {
+  describe(`getPointHistoriesByUserId`, () => {
     it(`유저가 없으면 에러를 반환한다.`, async () => {
       const userId = 0;
 

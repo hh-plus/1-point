@@ -21,24 +21,22 @@ export class PointService {
 
   async getPointByUserId(userId: number) {
     User.find(userId);
+    const userPoint = await this.userDb.selectById(userId);
+    return userPoint;
   }
 
   async getPointHistoriesByUserId(userId: number): Promise<PointHistory[]> {
     // 이번 예제에서는 유저가 반드시 존재한다고 가정해보자(단, userId가 0이면 없는 것으로 간주한다.)
     User.find(userId);
-
     const point = await this.historyDb.selectAllByUserId(userId);
-
     return point;
   }
 
   async charge(userId: number, amount: number): Promise<UserPoint> {
     User.find(userId);
-
     if (amount <= 0) {
       throw new Error('amount must be positive');
     }
-
     const updatedPoint = await this.userDb.insertOrUpdate(userId, amount);
     await this.historyDb.insert(
       userId,
@@ -49,15 +47,15 @@ export class PointService {
     return updatedPoint;
   }
 
-  // async use(userId: number, amount: number): Promise<UserPoint> {
-  //   User.find(userId);
+  async use(userId: number, amount: number): Promise<UserPoint> {
+    User.find(userId);
 
-  //   if (amount <= 0) {
-  //     throw new Error('amount must be positive');
-  //   }
+    if (amount <= 0) {
+      throw new Error('amount must be positive');
+    }
 
-  //   const userPoint = await this.userDb.selectById(userId);
+    const userPoint = await this.userDb.selectById(userId);
 
-  //   return;
-  // }
+    return;
+  }
 }
