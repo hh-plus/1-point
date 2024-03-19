@@ -22,6 +22,10 @@ export class PointService {
   async getPointByUserId(userId: number) {
     User.find(userId);
     const userPoint = await this.userDb.selectById(userId);
+
+    if (!userPoint) {
+      throw new Error('user point not found');
+    }
     return userPoint;
   }
 

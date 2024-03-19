@@ -41,6 +41,16 @@ describe('PointService', () => {
         updateMillis: expect.any(Number),
       });
     });
+
+    it('유저 포인트 정보가 없으면 에러를 반환한다.', async () => {
+      const userId = 1;
+      const mockSelectById = jest.fn(
+        (): Promise<UserPoint> => Promise.resolve(null),
+      );
+      userDb.selectById = mockSelectById;
+
+      await expect(service.getPointByUserId(userId)).rejects.toThrow();
+    });
   });
 
   /**
