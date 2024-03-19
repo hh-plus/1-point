@@ -171,9 +171,39 @@ describe('PointService', () => {
    * 3. 포인트 사용을 완료하면 사용된 포인트를 반환한다.
    * 4. 포인트 사용 시 히스토리를 저장해야 한다.
    * 5. 사용할 포인트가 유저가 가진 포인트보다 많으면 에러를 반환한다.
+   * 6. 포인트 정보가 없으면 에러를 반환한다.
    *
    */
   describe(`use`, () => {
+    let userId = 1;
+    let amount = 100;
+    let mockSelectById = null;
+    let mockInsert = null;
+    let mockInsertOrUpdate = null;
+    beforeEach(() => {
+      jest.resetAllMocks();
+
+      mockSelectById = jest.fn(
+        (): Promise<UserPoint> =>
+          Promise.resolve({ id: userId, point: 100, updateMillis: Date.now() }),
+      );
+
+      userDb.selectById = mockSelectById;
+
+      historyDb.insert = jest.fn();
+
+      mockInsertOrUpdate = jest.fn(
+        (): Promise<UserPoint> =>
+          Promise.resolve({
+            id: userId,
+            point: -100,
+            updateMillis: Date.now(),
+          }),
+      );
+
+      userDb.insertOrUpdate = mockInsertOrUpdate;
+    });
+
     it(`유저가 없으면 에러를 반환한다.`, async () => {
       const userId = 0;
       const amount = 100;
@@ -218,12 +248,7 @@ describe('PointService', () => {
     it(`포인트 사용 시 히스토리를 저장해야 한다.`, async () => {
       const userId = 1;
       const amount = 100;
-      const mockSelectById = jest.fn(
-        (): Promise<UserPoint> =>
-          Promise.resolve({ id: userId, point: 100, updateMillis: Date.now() }),
-      );
-      userDb.selectById = mockSelectById;
-      historyDb.insert = jest.fn();
+
       await service.use(userId, amount);
       expect(historyDb.insert).toHaveBeenCalled();
     });
