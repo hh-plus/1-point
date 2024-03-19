@@ -70,6 +70,13 @@ export class PointService {
       throw new Error('not enough point');
     }
 
+    await this.historyDb.insert(
+      userId,
+      amount,
+      TransactionType.USE,
+      Date.now(),
+    );
+
     return;
   }
 }

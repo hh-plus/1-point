@@ -214,5 +214,18 @@ describe('PointService', () => {
 
       await expect(service.use(userId, amount)).rejects.toThrow();
     });
+
+    it(`포인트 사용 시 히스토리를 저장해야 한다.`, async () => {
+      const userId = 1;
+      const amount = 100;
+      const mockSelectById = jest.fn(
+        (): Promise<UserPoint> =>
+          Promise.resolve({ id: userId, point: 100, updateMillis: Date.now() }),
+      );
+      userDb.selectById = mockSelectById;
+      historyDb.insert = jest.fn();
+      await service.use(userId, amount);
+      expect(historyDb.insert).toHaveBeenCalled();
+    });
   });
 });
