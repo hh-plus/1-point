@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { AppModule } from './../src/app.module';
+import { AppModule } from '../src/app.module';
 import { UserPoint, TransactionType, PointHistory } from '@/point/point.model';
 
 const userId = 1;
@@ -16,13 +16,6 @@ describe('AppController (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     await app.init();
-  });
-
-  it(`/point/:id/histories (GET)`, () => {
-    return request(app.getHttpServer())
-      .get(`/point/${userId}/histories`)
-      .expect(200)
-      .expect([]);
   });
 
   describe('포인트를 충전 후 조회할 수 있어야 한다.', () => {
@@ -131,8 +124,56 @@ describe('AppController (e2e)', () => {
           updateMillis: expect.any(Number),
         });
       });
+
+      it(`포인트를 사용 후 히스토리가 남아야한다.`, async () => {
+        await request(app.getHttpServer())
+          .patch(`/point/${userId}/charge`)
+          .send({ amount: 100 });
+
+        await request(app.getHttpServer())
+          .patch(`/point/${userId}/use`)
+          .send({ amount: 50 });
+
+        const historyData: {
+          status: number;
+          body: PointHistory[];
+        } = await request(app.getHttpServer()).get(
+          `/point/${userId}/histories`,
+        );
+
+        expect(historyData.status).toBe(200);
+        expect(historyData.body).toHaveLength(2);
+        expect(historyData.body[1]).toEqual({
+          id: 2,
+          userId: 1,
+          amount: 50,
+          type: TransactionType.USE,
+          timeMillis: expect.any(Number),
+        });
+      });
     });
     describe('비정상 플로우', () => {
+      it('음수의 포인트를 충전하려하면 에러', () => {
+        return request(app.getHttpServer())
+          .patch(`/point/${userId}/charge`)
+          .send({ amount: -100 })
+          .expect(500);
+      });
+
+      it('음수의 포인트를 사용하려하면 에러', () => {
+        return request(app.getHttpServer())
+          .patch(`/point/${userId}/use`)
+          .send({ amount: -50 })
+          .expect(500);
+      });
+
+      it('유저를 찾을 수 없으면 에러', () => {
+        return request(app.getHttpServer())
+          .patch(`/point/0/use`)
+          .send({ amount: 50 })
+          .expect(500);
+      });
+
       it(`포인트를 충전하고 충전한 포인트보다 많은 포인트를 사용하면 에러를 반환한다.`, async () => {
         await request(app.getHttpServer())
           .patch(`/point/${userId}/charge`)
