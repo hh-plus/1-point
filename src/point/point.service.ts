@@ -62,7 +62,9 @@ export class PointService {
     }
 
     const userPoint = await this.userDb.selectById(userId);
-
+    if (!userPoint) {
+      throw new Error('user point not found');
+    }
     return;
   }
 }
