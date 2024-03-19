@@ -25,6 +25,11 @@ describe('PointService', () => {
     expect(service).toBeDefined();
   });
 
+  /**
+   * 1. id에 해당하는 유저가 없으면 에러를 반환한다.
+   * 2. id에 해당하는 유저가 있으면 유저가 가진 포인트를 반환한다.
+   * 3. 유저 포인트 정보가 없으면 에러를 반환한다.
+   */
   describe('getPointByUserId', () => {
     it('유저가 없으면 에러를 반환한다.', async () => {
       const userId = 0;
@@ -90,6 +95,15 @@ describe('PointService', () => {
       await expect(service.getPointHistoriesByUserId(userId)).resolves.toEqual(
         mockPointHistory,
       );
+    });
+    it('유저 포인트 정보가 없으면 에러를 반환한다.', async () => {
+      const userId = 1;
+      const mockSelectAllByUserId = jest.fn(
+        (): Promise<PointHistory[]> => Promise.resolve(null),
+      );
+      historyDb.selectAllByUserId = mockSelectAllByUserId;
+
+      await expect(service.getPointHistoriesByUserId(userId)).rejects.toThrow();
     });
   });
 
