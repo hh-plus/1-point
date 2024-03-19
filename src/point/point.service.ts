@@ -19,6 +19,10 @@ export class PointService {
     private readonly historyDb: PointHistoryTable,
   ) {}
 
+  async getPointByUserId(userId: number) {
+    User.find(userId);
+  }
+
   async getPointHistoriesByUserId(userId: number): Promise<PointHistory[]> {
     // 이번 예제에서는 유저가 반드시 존재한다고 가정해보자(단, userId가 0이면 없는 것으로 간주한다.)
     User.find(userId);

@@ -25,6 +25,14 @@ describe('PointService', () => {
     expect(service).toBeDefined();
   });
 
+  describe('getPointByUserId', () => {
+    it('유저가 없으면 에러를 반환한다.', async () => {
+      const userId = 0;
+
+      await expect(service.getPointByUserId(userId)).rejects.toThrow();
+    });
+  });
+
   /**
    * 1. id에 해당하는 유저가 없으면 에러를 반환한다.
    * 2. id에 해당하는 유저가 있으면 유저가 가진 포인트를 반환한다.
