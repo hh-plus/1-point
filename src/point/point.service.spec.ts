@@ -173,24 +173,34 @@ describe('PointService', () => {
    * 5. 사용할 포인트가 유저가 가진 포인트보다 많으면 에러를 반환한다.
    *
    */
-  // describe(`use`, () => {
-  //   it(`유저가 없으면 에러를 반환한다.`, async () => {
-  //     const userId = 0;
-  //     const amount = 100;
+  describe(`use`, () => {
+    it(`유저가 없으면 에러를 반환한다.`, async () => {
+      const userId = 0;
+      const amount = 100;
 
-  //     await expect(service.use(userId, amount)).rejects.toThrow();
-  //   });
+      await expect(service.use(userId, amount)).rejects.toThrow();
+    });
 
-  //   it(`음수 또는 0 포인트는 사용할 수 없다.`, async () => {
-  //     const userId = 1;
-  //     const amount = 0;
+    it(`음수 또는 0 포인트는 사용할 수 없다.`, async () => {
+      const userId = 1;
+      const amount = 0;
 
-  //     await expect(service.use(userId, amount)).rejects.toThrow();
+      await expect(service.use(userId, amount)).rejects.toThrow();
 
-  //     const amount2 = -100;
+      const amount2 = -100;
 
-  //     await expect(service.use(userId, amount2)).rejects.toThrow();
-  //   });
+      await expect(service.use(userId, amount2)).rejects.toThrow();
+    });
 
-  // });
+    it(`포인트 정보가 없으면 에러를 반환한다.`, async () => {
+      const userId = 1;
+      const amount = 100;
+      const mockSelectById = jest.fn(
+        (): Promise<UserPoint> => Promise.resolve(null),
+      );
+      userDb.selectById = mockSelectById;
+
+      await expect(service.use(userId, amount)).rejects.toThrow();
+    });
+  });
 });

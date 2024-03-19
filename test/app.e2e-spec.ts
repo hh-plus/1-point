@@ -24,7 +24,7 @@ describe('AppController (e2e)', () => {
   });
 
   describe('포인트를 충전 후 조회할 수 있어야 한다.', () => {
-    it(`충전을 두 번 진행하면 포인트의 합을 반환하고, 2번의 기록이 남아야 한다.`, async () => {
+    it(`충전을 두 번 진행하면 2번의 기록이 남아야 한다.`, async () => {
       const chargeData: {
         status: number;
         body: UserPoint;
@@ -77,6 +77,28 @@ describe('AppController (e2e)', () => {
           timeMillis: expect.any(Number),
         },
       ]);
+    });
+
+    it(`충전을 두 번 진행하면 포인트의 합을 조회할 수 있어야 한다.`, async () => {
+      await request(app.getHttpServer())
+        .patch('/point/1/charge')
+        .send({ amount: 100 });
+
+      await request(app.getHttpServer())
+        .patch('/point/1/charge')
+        .send({ amount: 200 });
+
+      const pointData: {
+        status: number;
+        body: UserPoint;
+      } = await request(app.getHttpServer()).get('/point/1');
+
+      expect(pointData.status).toBe(200);
+      expect(pointData.body).toEqual({
+        id: 1,
+        point: 300,
+        updateMillis: expect.any(Number),
+      });
     });
   });
 });
