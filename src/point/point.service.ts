@@ -77,6 +77,11 @@ export class PointService {
       Date.now(),
     );
 
-    return;
+    await this.userDb.insertOrUpdate(userId, -amount);
+
+    userPoint.point -= amount;
+    userPoint;
+
+    return userPoint;
   }
 }

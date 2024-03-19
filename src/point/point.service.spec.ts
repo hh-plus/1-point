@@ -227,5 +227,31 @@ describe('PointService', () => {
       await service.use(userId, amount);
       expect(historyDb.insert).toHaveBeenCalled();
     });
+
+    it(`현재 포인트에서 사용할 포인트를 뺀 값을 반환한다.`, async () => {
+      const userId = 1;
+      const amount = 100;
+      const mockSelectById = jest.fn(
+        (): Promise<UserPoint> =>
+          Promise.resolve({ id: userId, point: 100, updateMillis: Date.now() }),
+      );
+      userDb.selectById = mockSelectById;
+
+      const mockInsertOrUpdate = jest.fn(
+        (): Promise<UserPoint> =>
+          Promise.resolve({
+            id: userId,
+            point: -100,
+            updateMillis: Date.now(),
+          }),
+      );
+
+      userDb.insertOrUpdate = mockInsertOrUpdate;
+      await expect(service.use(userId, amount)).resolves.toEqual({
+        id: userId,
+        point: 0,
+        updateMillis: expect.any(Number),
+      });
+    });
   });
 });
