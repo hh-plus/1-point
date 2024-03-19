@@ -65,6 +65,11 @@ export class PointService {
     if (!userPoint) {
       throw new Error('user point not found');
     }
+
+    if (userPoint.point < amount) {
+      throw new Error('not enough point');
+    }
+
     return;
   }
 }

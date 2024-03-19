@@ -202,5 +202,17 @@ describe('PointService', () => {
 
       await expect(service.use(userId, amount)).rejects.toThrow();
     });
+
+    it(`사용할 포인트가 유저가 가진 포인트보다 많으면 에러를 반환한다.`, async () => {
+      const userId = 1;
+      const amount = 100;
+      const mockSelectById = jest.fn(
+        (): Promise<UserPoint> =>
+          Promise.resolve({ id: userId, point: 50, updateMillis: Date.now() }),
+      );
+      userDb.selectById = mockSelectById;
+
+      await expect(service.use(userId, amount)).rejects.toThrow();
+    });
   });
 });
