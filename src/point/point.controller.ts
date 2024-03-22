@@ -10,10 +10,14 @@ import { PointHistory, TransactionType, UserPoint } from './point.model';
 
 import { PointBody as PointDto } from './point.dto';
 import { PointService } from './point.service';
+import { Transaction } from '@/database/transaction/transaction';
 
 @Controller('/point')
 export class PointController {
-  constructor(private readonly pointService: PointService) {}
+  constructor(
+    private readonly pointService: PointService,
+    private readonly transaction: Transaction,
+  ) {}
 
   /**
    * TODO - 특정 유저의 포인트를 조회하는 기능을 작성해주세요.
@@ -48,7 +52,9 @@ export class PointController {
   ): Promise<UserPoint> {
     const userId = Number.parseInt(id);
     const amount = pointDto.amount;
+    this.transaction.start({ userId, transactionType: TransactionType.CHARGE });
     const userPoint: UserPoint = await this.pointService.charge(userId, amount);
+    this.transaction.commit({ userId });
     // return { id: userId, point: amount, updateMillis: Date.now() };
     return userPoint;
   }
@@ -61,10 +67,20 @@ export class PointController {
     @Param('id') id,
     @Body(ValidationPipe) pointDto: PointDto,
   ): Promise<UserPoint> {
-    const userId = Number.parseInt(id);
-    const amount = pointDto.amount;
-    const userPoint: UserPoint = await this.pointService.use(userId, amount);
+    try {
+      const userId = Number.parseInt(id);
+      const amount = pointDto.amount;
+      this.transaction.start({
+        userId,
+        transactionType: TransactionType.USE,
+      });
+      const userPoint: UserPoint = await this.pointService.use(userId, amount);
+      this.transaction.commit({ userId });
+      return userPoint;
+    } catch (e) {
+      console.log(e);
+      throw e;
+    }
     // return { id: userId, point: amount, updateMillis: Date.now() };
-    return userPoint;
   }
 }
