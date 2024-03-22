@@ -4,6 +4,7 @@ import { DatabaseModule } from '@/database/database.module';
 import { PointHistoryTable } from '@/database/pointhistory.table';
 import { PointHistory, TransactionType, UserPoint } from './point.model';
 import { UserPointTable } from '@/database/userpoint.table';
+import { Transaction } from '@/database/transaction/transaction';
 
 describe('PointService', () => {
   let service: PointService;
@@ -13,7 +14,7 @@ describe('PointService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [DatabaseModule],
-      providers: [PointService],
+      providers: [PointService, Transaction],
     }).compile();
 
     historyDb = module.get<PointHistoryTable>(PointHistoryTable);

@@ -48,7 +48,9 @@ export class Transaction {
     } else {
       // 실행중인 트랜잭션이 있는 경우, 대기 큐에 추가 후 pending 호출
       this.transaction[userId].data.push(transactionData);
-      this.pending({ userId });
+      this.pending({ userId }).catch(err => {
+        throw err;
+      });
     }
   }
 
@@ -92,7 +94,9 @@ export class Transaction {
 
     if (this.transaction[userId].data.length > 0) {
       // 대기 중인 트랜잭션이 있다면, 다시 pending을 호출하여 다음 트랜잭션 처리
-      this.pending({ userId });
+      this.pending({ userId }).catch(err => {
+        throw err;
+      });
     }
   }
 }
