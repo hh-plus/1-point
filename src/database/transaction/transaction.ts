@@ -32,6 +32,8 @@ export class Transaction {
       createdAt: new Date(),
     };
 
+    // 1번유저 : [작업 리스트]
+    // 2번유저 : [작업리스트]
     if (!this.transaction[userId]) {
       // 사용자의 첫 번째 트랜잭션인 경우, 즉시 시작
       this.transaction[userId] = {
