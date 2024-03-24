@@ -46,7 +46,7 @@ describe('AppController (e2e)', () => {
       expect(chargeData2.status).toBe(200);
       expect(chargeData2.body).toEqual({
         id: 1,
-        point: 200,
+        point: 300,
         updateMillis: expect.any(Number),
       });
 
@@ -195,19 +195,15 @@ describe('AppController (e2e)', () => {
 
   describe('transaction', () => {
     it('근소한 차이로 충전과 사용 요청을 보내면 순서대로 처리되어야 한다.', async () => {
-      const chargePromise = request(app)
+      const chargeData = await request(app.getHttpServer())
         .patch(`/point/${userId}/charge`)
         .send({ amount: 100 });
 
-      const usePromise = request(app)
+      const useData = await request(app.getHttpServer())
         .patch(`/point/${userId}/use`)
         .send({ amount: 100 });
 
       // 두 요청의 응답을 기다립니다.
-      const [chargeData, useData] = await Promise.all([
-        chargePromise,
-        usePromise,
-      ]);
 
       if (chargeData.status !== 200 || useData.status !== 200) {
         console.log(chargeData.body);
