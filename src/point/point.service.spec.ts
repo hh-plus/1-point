@@ -149,6 +149,18 @@ describe('PointService', () => {
 
       await expect(service.charge(userId, amount2)).rejects.toThrow();
     });
+
+    it(`포인트 정보가 없으면 에러를 반환한다.`, async () => {
+      const userId = 1;
+      const amount = 100;
+      const mockSelectById = jest.fn(
+        (): Promise<UserPoint> => Promise.resolve(null),
+      );
+      userDb.selectById = mockSelectById;
+
+      await expect(service.charge(userId, amount)).rejects.toThrow();
+    });
+
     it(`포인트 충전 시 히스토리를 저장해야 한다.`, async () => {
       const userId = 1;
       const amount = 100;

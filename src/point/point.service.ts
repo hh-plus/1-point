@@ -46,7 +46,13 @@ export class PointService {
       throw new Error('amount must be positive');
     }
 
-    const updatedPoint = await this.userDb.insertOrUpdate(userId, amount);
+    const userPoint = await this.userDb.selectById(userId);
+    if (!userPoint) {
+      throw new Error('user point not found');
+    }
+    const addedPoint = userPoint.point + amount;
+
+    const updatedPoint = await this.userDb.insertOrUpdate(userId, addedPoint);
     await this.historyDb.insert(
       userId,
       amount,
