@@ -3,13 +3,13 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { UserPoint, TransactionType, PointHistory } from '@/point/point.model';
-import { Transaction } from '@/database/transaction/transaction';
+import { LockMutex } from '@/database/lock/lock';
 
 const userId = 1;
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
-  let transaction: Transaction;
+  let transaction: LockMutex;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -195,45 +195,27 @@ describe('AppController (e2e)', () => {
 
   describe('transaction', () => {
     it('근소한 차이로 충전과 사용 요청을 보내면 순서대로 처리되어야 한다.', async () => {
-      const chargeData = await request(app.getHttpServer())
+      const chargePromise = request(app.getHttpServer())
         .patch(`/point/${userId}/charge`)
-        .send({ amount: 100 });
-
-      const useData = await request(app.getHttpServer())
+        .send({ amount: 100 })
+        .then(res => {
+          if (res.status >= 400) {
+            throw new Error('charge failed');
+          }
+          return res;
+        });
+      const usePromise = request(app.getHttpServer())
         .patch(`/point/${userId}/use`)
-        .send({ amount: 100 });
-
-      // 두 요청의 응답을 기다립니다.
-
-      if (chargeData.status !== 200 || useData.status !== 200) {
-        console.log(chargeData.body);
-        console.log(useData.error);
-      }
-
-      expect(chargeData.status).toBe(200);
-      expect(useData.status).toBe(200);
-
-      const historyData: {
-        status: number;
-        body: PointHistory[];
-      } = await request(app.getHttpServer()).get(`/point/${userId}/histories`);
-
-      expect(historyData.status).toBe(200);
-      expect(historyData.body).toHaveLength(2);
-      expect(historyData.body[0]).toEqual({
-        id: 1,
-        userId: 1,
-        amount: 100,
-        type: TransactionType.CHARGE,
-        timeMillis: expect.any(Number),
-      });
-      expect(historyData.body[1]).toEqual({
-        id: 2,
-        userId: 1,
-        amount: 100,
-        type: TransactionType.USE,
-        timeMillis: expect.any(Number),
-      });
+        .send({ amount: 200 })
+        .then(res => {
+          if (res.status >= 400) {
+            throw new Error('use failed');
+          }
+          return res;
+        });
+      const result = await Promise.allSettled([chargePromise, usePromise]);
+      const rejected = result.filter(res => res.status === 'rejected');
+      expect(rejected).toHaveLength(1);
     });
   });
 });

@@ -10,13 +10,13 @@ import { PointHistory, TransactionType, UserPoint } from './point.model';
 
 import { PointBody as PointDto } from './point.dto';
 import { PointService } from './point.service';
-import { Transaction } from '@/database/transaction/transaction';
+import { LockMutex } from '@/database/lock/lock';
 
 @Controller('/point')
 export class PointController {
   constructor(
     private readonly pointService: PointService,
-    private readonly transaction: Transaction,
+    private readonly lockMutex: LockMutex,
   ) {}
 
   /**
@@ -51,12 +51,20 @@ export class PointController {
     @Body(ValidationPipe) pointDto: PointDto,
   ): Promise<UserPoint> {
     const userId = Number.parseInt(id);
-    const amount = pointDto.amount;
-    this.transaction.start({ userId, transactionType: TransactionType.CHARGE });
-    const userPoint: UserPoint = await this.pointService.charge(userId, amount);
-    this.transaction.commit({ userId });
-    // return { id: userId, point: amount, updateMillis: Date.now() };
-    return userPoint;
+    try {
+      const amount = pointDto.amount;
+      await this.lockMutex.lock(userId);
+      const userPoint: UserPoint = await this.pointService.charge(
+        userId,
+        amount,
+      );
+      this.lockMutex.unlock(userId);
+      // return { id: userId, point: amount, updateMillis: Date.now() };
+      return userPoint;
+    } catch (err) {
+      this.lockMutex.unlock(userId);
+      throw err;
+    }
   }
 
   /**
@@ -67,19 +75,16 @@ export class PointController {
     @Param('id') id,
     @Body(ValidationPipe) pointDto: PointDto,
   ): Promise<UserPoint> {
+    const userId = Number.parseInt(id);
     try {
-      const userId = Number.parseInt(id);
       const amount = pointDto.amount;
-      this.transaction.start({
-        userId,
-        transactionType: TransactionType.USE,
-      });
+      await this.lockMutex.lock(userId);
       const userPoint: UserPoint = await this.pointService.use(userId, amount);
-      this.transaction.commit({ userId });
+      this.lockMutex.unlock(userId);
       return userPoint;
-    } catch (e) {
-      console.log(e);
-      throw e;
+    } catch (err) {
+      this.lockMutex.unlock(userId);
+      throw err;
     }
     // return { id: userId, point: amount, updateMillis: Date.now() };
   }
